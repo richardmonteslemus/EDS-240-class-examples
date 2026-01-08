@@ -1,0 +1,62 @@
+---
+title: "Week 1 lab"
+author: "Richard Montes Lemus"
+format: html
+editor: visual
+---
+
+```{r}
+library(tidyverse)
+library(janitor)
+library(here)
+```
+
+```{r}
+bee_stress <- read_csv(here("week1", "data", "stressor.csv"))
+```
+
+```{r}
+# Remove special characters from state column
+bee_stress$state <- str_replace_all(bee_stress$state, "[%)^_!@*$(+&#.-]", "")
+```
+
+```{r}
+# Remove special characters from state column
+bee_stress$stressor <- str_replace_all(bee_stress$stressor, "[%)^_!@*$(+&#.-]", "")
+
+# Replace / with and in stressor column 
+bee_stress$stressor <- str_replace_all(bee_stress$stressor, "/", "and")
+```
+
+
+```{r}
+table(bee_stress$state)
+```
+```{r}
+table(bee_stress$stressor)
+```
+```{r}
+# Turn column names into snake_case
+bee_stress <- bee_stress %>% 
+  clean_names()
+```
+
+```{r}
+# Check year column class 
+class(bee_stress$year)
+```
+
+```{r}
+# Pivot data frame to make data tidy 
+bee_stress_quarters <- bee_stress %>% 
+  pivot_longer(cols = january_march:october_december, 
+               names_to = "quarter_months", 
+               values_to = "pct_stress") %>% 
+  mutate(quarter = case_when( 
+    quarter_months == "january_march" ~1, 
+    quarter_months == "april_june" ~2, 
+    quarter_months == "july_september" ~3,
+    quarter_months == "october_december" ~4))
+```
+
+
