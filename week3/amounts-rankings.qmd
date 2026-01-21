@@ -1,5 +1,5 @@
 ---
-title: "TEMPLATE - visualizing amounts / rankings"
+title: "visualizing amounts / rankings"
 author: "Richard Montes Lemus"
 date: 2026-01-21
 toc: true
@@ -194,6 +194,7 @@ ggplot(sui_severity, aes(x = month, y = tot_num_sui, fill = sui_category)) +
 - consider audience familiarity (may require more explanation than a basic bar plot)
 - encodes values using COLOR
 
+
 ***Our goal:** create a heatmap that shows how water stress (represented by SUI) changes through time for each of the ten HUC 18 subregions*
 
 First, we need to do a bit of wrangling:
@@ -206,12 +207,19 @@ First, we need to do a bit of wrangling:
 #............df of annual mean SUI by subregion & year...........
 heatmap_data <- ca_region |> 
   group_by(subregion_name, year) |> 
-  summarize(annual_mean_sui = mean(sui_frac, na.rm = TRUE))
+  summarize(annual_mean_sui = mean(sui_frac, na.rm = TRUE)) %>% 
+  ungroup()
 
 #.determine order of subregions based on highest avg SUI in 2015.
-
+order_2025 <- heatmap_data %>% 
+  filter(year == 2015) %>% 
+  arrange(annual_mean_sui) %>% 
+  mutate(order = row_number()) %>% 
+  select(subregion_name, order)
 #........join order with rest of data to set factor levels.......
-
+heat_map_order <- heatmap_data %>% 
+  left_join(order_2025) %>% 
+  mutate(subregion_name = fct_reorder(.f = subregion_name, .x = order))
 ```
 
 Then, create heatmap:
@@ -220,6 +228,18 @@ Then, create heatmap:
 #| eval: true
 #| echo: false
 #.........................create heatmap.........................
+ggplot(heat_map_order, aes(x = year, y = subregion_name, fill = annual_mean_sui)) +
+  geom_tile() + 
+  scale_fill_viridis_c() + 
+  scale_x_continuous(breaks = seq(2010, 2020, by = 2)) + 
+  labs(fill = "Annual Mean Surface Water\n Supply and Use Index (SUI)") +
+  guides(fill =  guide_colorbar(title.position = "top", barwidth = 15, barheight = 0.75)) + 
+  theme_minimal() + 
+  theme(
+    legend.position = "top",
+    panel.grid = element_blank(),
+    axis.title = element_blank()
+  )
 
 ```
 
@@ -256,5 +276,18 @@ Then, create dumbbell plot:
 
 ```{r}
 #......................create dumbbell plot......................
-
+ggplot(sbc_subbasin_monthly) + 
+  geom_linerange(aes(y = month,
+                     xmin = mean_consum, xmax = mean_avail)) + 
+  geom_point(aes(x = mean_avail, y = month),
+             color = "#448F9C",
+             size = 5, stroke = 2) + 
+  geom_point(aes(x = mean_consum, y = month),
+             color = "#9c7344",
+             size = 5, 
+             shape = 21, 
+             fill = "white",
+             stroke = 2) + 
+  labs(x = "Mean monthly water availability & consumption (mm)") + 
+  theme(axis.title.y = element_blank())
 ```
