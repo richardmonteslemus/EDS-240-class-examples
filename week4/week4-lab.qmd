@@ -1,0 +1,57 @@
+---
+title: "Eds 240 Lab Week 4"
+author: "Richard Montes Lemus"
+format: html
+editor: source
+---
+
+```{r}
+library(tidyverse)
+library(janitor)
+library(here)
+library(ggridges)
+library(ggplot2)
+library(viridis)
+library(hrbrthemes)
+```
+
+```{r}
+url <- "https://raw.githubusercontent.com/EDS-240-Data-Viz/fundamental-charts-lab-data/refs/heads/main/vehicle_emissions_europe/eea_s_eu-sdg-13-31-provisional_p_2000-2024_v01_r00.csv"
+data <- read_csv(url)
+```
+```{r}
+data <- data %>% 
+  filter(time > 2006) %>% 
+  filter(!geo_label == "European Union - 27 countries (from 2020)")
+
+```
+
+
+```{r}
+data %>% 
+    ggplot(aes(x = obs_value, y = fct_rev(as.factor(time)), fill = after_stat(x))) + 
+    ggridges::geom_density_ridges_gradient(rel_min_height = 0, 
+                                           scale = 3,
+                                           quantile_lines = TRUE,
+        quantiles = 2 ) + 
+      scale_fill_gradientn(colors = c("#245D33","#3EB24E", "#D9E7EC", "#EF8080", "#8B3A3A")) + 
+    labs(title = "Distribution of Vehicle Emissions in Europe Across Time",
+         x = "New Passenger Vechicle Emissions (g CO2 per km)",
+         y = "Time (Years)",
+         fill = "Average CO2\n emissions per km")
+```
+
+```{r}
+data %>% 
+    ggplot(aes(x = obs_value, y = fct_rev(as.factor(time)), fill = after_stat(x))) + 
+    ggridges::geom_density_ridges_gradient(rel_min_height = 0, 
+                                           scale = 3,
+                                           quantile_lines = TRUE,
+        quantiles = 2 ) + 
+      scale_fill_gradientn(colors = c("#245D33","#3EB24E", "yellow", "#EF8080", "#8B3A3A")) + 
+    labs(title = "Distribution of Vehicle Emissions in Europe Across Time",
+         x = "New Passenger Vechicle Emissions (g CO2 per km)",
+         y = "Time (Years)",
+         fill = "Average grams\n CO2 per km") 
+```
+

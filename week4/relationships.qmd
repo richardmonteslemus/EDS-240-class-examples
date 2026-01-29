@@ -1,5 +1,5 @@
 ---
-title: "TEMPLATE - visualizing numerical relationships"
+title: "visualizing numerical relationships"
 author: "Your Name"
 date: 2026-01-28
 toc: true
