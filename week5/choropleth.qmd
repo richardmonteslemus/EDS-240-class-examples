@@ -36,7 +36,7 @@ county_geo <- tigris::counties(class = "sf", cb = TRUE) |> # cb = TRUE to use ca
 
 #....................import precipitation data...................
 precip_data <- read_csv(here::here("week5", "data", "county-nov20-oct25-precip.csv"), 
-                        skip = 4)
+                        skip = 3)
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##                               data wrangling                             ----
@@ -94,7 +94,7 @@ precip_wrangled <- precip_data |>
 ##~~~~~~~~~~~~~~~~~~
 
 # join dfs (be sure to join precip TO sf object, not the other way around; see https://github.com/tidyverse/ggplot2/issues/3936 & https://map-rfun.library.duke.edu/032_thematic_mapping_geom_sf.html)) -------
-joined_precip_geom <- full_join(county_geo_wrangled, precip_wrangled) 
+joined_precip_geom <- full_join(county_geo_wrangled, precip_wrangled)  # Simple feature goes first 
 ```
 
 ## Create map
@@ -105,6 +105,21 @@ joined_precip_geom <- full_join(county_geo_wrangled, precip_wrangled)
 #| eval: true
 #| echo: true
 # create base map ----
+
+base_map <- ggplot(joined_precip_geom) + 
+  geom_sf(aes(fill = perc_change), linewidth = 0.1) + 
+  labs(title = "5 - year precipitation compared with the 20th century average", 
+       subtitle = "January 2020 - December 2024",
+       caption = "Source: National Centers for Environmental Information") + 
+  theme_void() + 
+  theme(
+    legend.position = "bottom",
+    legend.title = element_blank(),
+    plot.caption = element_text(face = "italic",
+                                margin = margin(t = 10, r = 5, b = 0, l = 0))
+  )
+
+base_map
 ```
 
 ### Create an unclassed map
@@ -118,6 +133,7 @@ joined_precip_geom <- full_join(county_geo_wrangled, precip_wrangled)
 RColorBrewer::display.brewer.pal(n = 11, name = 'BrBG')
 
 # save HEX codes as vector ----
+my_brewer_pallette11 <- RColorBrewer::brewer.pal(n = 11, name = 'BrBG')
 ```
 
 - build map
@@ -126,6 +142,12 @@ RColorBrewer::display.brewer.pal(n = 11, name = 'BrBG')
 #| eval: true
 #| echo: true
 # create unclassed map ----
+base_map + 
+  scale_fill_gradientn(colors = my_brewer_pallette11,
+                       labels = scales::label_percent(scale = 1),
+                       breaks = scales::breaks_width(width = 10),
+                       values = scales::rescale(x = c(-40, 0, 20))) + 
+  guides(fill = guide_colorbar(barwidth = 25, barheight = 0.75))
 ```
 
 ## Create a classed map
@@ -139,6 +161,8 @@ RColorBrewer::display.brewer.pal(n = 11, name = 'BrBG')
 RColorBrewer::display.brewer.pal(n = 10, name = 'BrBG')
 
 # save HEX codes as vector ----
+my_brew_pallette10 <- RColorBrewer::brewer.pal(n = 10, name = 'BrBG')
+
 ```
 
 - build map
@@ -147,7 +171,12 @@ RColorBrewer::display.brewer.pal(n = 10, name = 'BrBG')
 #| eval: true
 #| echo: true
 # classed map with default bins ----
-
+base_map + 
+  scale_fill_stepsn(colors = my_brew_pallette10, 
+                    labels = scales::label_percent(scale = 1), 
+                    breaks = scales::breaks_width(width = 5),
+                    values = scales::rescale(x = c(-40, 0, 20))) + 
+  guides(fill = guide_colorsteps(barwidth = 25, barheight = 0.75))
 # bins have width of 10 ----
 
 # bins have width of 5 ---
